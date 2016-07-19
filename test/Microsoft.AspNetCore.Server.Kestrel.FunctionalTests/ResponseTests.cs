@@ -9,7 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.ObjectPool;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using Moq;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
@@ -142,6 +147,43 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                     Assert.True(onCompletedCalled);
                 }
             }
+        }
+
+        [Fact]
+        public async Task ResponseStatusCodeSetBeforeHttpContextDispose()
+        {
+            var mockHttpContextFactory = new Mock<IHttpContextFactory>();
+            mockHttpContextFactory.Setup(f => f.Create(It.IsAny<IFeatureCollection>()))
+                .Returns<IFeatureCollection>(fc => new DefaultHttpContext(fc));
+
+            int disposedStatusCode = -1;
+            mockHttpContextFactory.Setup(f => f.Dispose(It.IsAny<HttpContext>()))
+                .Callback<HttpContext>(c => disposedStatusCode = c.Response.StatusCode);
+
+            var hostBuilder = new WebHostBuilder()
+                .UseKestrel()
+                .UseUrls("http://127.0.0.1:0")
+                .ConfigureServices(services => services.AddSingleton<IHttpContextFactory>(mockHttpContextFactory.Object))
+                .Configure(app =>
+                {
+                    app.Run(context =>
+                    {
+                        throw new Exception();
+                    });
+                });
+
+            using (var host = hostBuilder.Build())
+            {
+                host.Start();
+
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetAsync($"http://localhost:{host.GetPort()}/");
+                    Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+                }
+            }
+
+            Assert.Equal(HttpStatusCode.InternalServerError, (HttpStatusCode)disposedStatusCode);
         }
 
         public static TheoryData<string, StringValues, string> NullHeaderData

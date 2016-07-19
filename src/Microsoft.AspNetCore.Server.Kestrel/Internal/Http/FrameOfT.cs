@@ -113,21 +113,24 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                                 await FireOnCompleted();
                             }
 
-                            _application.DisposeContext(context, _applicationException);
-                        }
-
-                        // If _requestAbort is set, the connection has already been closed.
-                        if (Volatile.Read(ref _requestAborted) == 0)
-                        {
-                            ResumeStreams();
-
-                            if (_keepAlive)
+                            // If _requestAbort is set, the connection has already been closed.
+                            if (Volatile.Read(ref _requestAborted) == 0)
                             {
-                                // Finish reading the request body in case the app did not.
-                                await messageBody.Consume();
+                                ResumeStreams();
+
+                                if (_keepAlive)
+                                {
+                                    // Finish reading the request body in case the app did not.
+                                    await messageBody.Consume();
+                                }
+
+                                // ProduceEnd() must be called before _application.DisposeContext(), to ensure
+                                // HttpContext.Response.StatusCode is correct set when
+                                // IHttpContextFactory.Dispose(HttpContext) is called.
+                                await ProduceEnd();
                             }
 
-                            await ProduceEnd();
+                            _application.DisposeContext(context, _applicationException);
                         }
 
                         StopStreams();
