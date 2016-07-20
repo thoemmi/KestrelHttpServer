@@ -125,7 +125,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                                 }
 
                                 // ProduceEnd() must be called before _application.DisposeContext(), to ensure
-                                // HttpContext.Response.StatusCode is correct set when
+                                // HttpContext.Response.StatusCode is correctly set when
                                 // IHttpContextFactory.Dispose(HttpContext) is called.
                                 await ProduceEnd();
                             }
