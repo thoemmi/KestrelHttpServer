@@ -7,6 +7,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Server.Kestrel.Internal.Networking;
 using Xunit;
@@ -108,6 +109,38 @@ namespace Microsoft.AspNetCore.Testing
             }
 
             Assert.Equal(expected, new String(actual, 0, offset));
+        }
+
+        public async Task ReceiveStartsWith(string prefix, int maxLineLength = 1024)
+        {
+            var actual = new char[maxLineLength];
+            var offset = 0;
+
+            while (offset < maxLineLength)
+            {
+                // Read one char at a time so we don't read past the end of the line.
+                var task = _reader.ReadAsync(actual, offset, 1);
+                if (!Debugger.IsAttached)
+                {
+                    Assert.True(await Task.WhenAny(task, Task.Delay(4000)) == task, $"{nameof(TestConnection)}.{nameof(ReceiveStartsWith)} timed out.");
+                }
+                var count = await task;
+                if (count == 0)
+                {
+                    break;
+                }
+
+                Assert.True(count == 1);
+                offset++;
+
+                if (actual[offset - 1] == '\n')
+                {
+                    break;
+                }
+            }
+
+            var actualLine = new string(actual, 0, offset);
+            Assert.StartsWith(prefix, actualLine);
         }
 
         public async Task ReceiveEnd(params string[] lines)

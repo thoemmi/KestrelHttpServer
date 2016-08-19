@@ -23,9 +23,12 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             timer.Start(_ =>
             {
                 callbackInvoked = true;
-                timer.Dispose();
             }, 50, 0);
             loop.Run();
+
+            timer.Dispose();
+            loop.Run();
+
             loop.Dispose();
 
             Assert.True(callbackInvoked);
@@ -52,11 +55,14 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
                 else
                 {
                     timer.Stop();
-                    timer.Dispose();
                 }
             }, 50, 50);
 
             loop.Run();
+
+            timer.Dispose();
+            loop.Run();
+
             loop.Dispose();
 
             Assert.Equal(2, callbackCount);

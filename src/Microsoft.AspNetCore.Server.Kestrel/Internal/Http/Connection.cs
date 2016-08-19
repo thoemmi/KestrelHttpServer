@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,6 +37,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         private TaskCompletionSource<object> _socketClosedTcs = new TaskCompletionSource<object>();
         private BufferSizeControl _bufferSizeControl;
+
+        private DateTimeOffset _requestStartTime;
+        private DateTimeOffset _requestEndTime;
 
         public Connection(ListenerContext context, UvStreamHandle socket) : base(context)
         {
@@ -75,6 +77,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             Log.ConnectionStart(ConnectionId);
 
             // Start socket prior to applying the ConnectionFilter
+            _requestEndTime = DateTimeOffset.UtcNow;
             _socket.ReadStart(_allocCallback, _readCallback, this);
 
             if (ServerOptions.ConnectionFilter == null)
@@ -154,6 +157,20 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
             SocketInput.Dispose();
             _socketClosedTcs.TrySetResult(null);
+        }
+
+        // Called on Libuv thread
+        public void Tick()
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            if (_frame?.Status == Frame.RequestProcessingStatus.RequestPending)
+            {
+                if ((now - _requestEndTime).TotalSeconds > ServerOptions.Limits.KeepAliveTimeout)
+                {
+                    SocketInput.IncomingComplete(0, null);
+                }
+            }
         }
 
         private void ApplyConnectionFilter()
@@ -275,6 +292,16 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                     ((SocketOutput)SocketOutput).End(endType);
                     break;
             }
+        }
+
+        void IConnectionControl.NotifyRequestStarted()
+        {
+            _requestStartTime = DateTimeOffset.Now;
+        }
+
+        void IConnectionControl.NotifyRequestFinished()
+        {
+            _requestEndTime = DateTimeOffset.Now;
         }
 
         private static unsafe string GenerateConnectionId(long id)

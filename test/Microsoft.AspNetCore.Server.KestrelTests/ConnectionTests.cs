@@ -29,6 +29,7 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
                     ServerAddress = ServerAddress.FromUrl("http://127.0.0.1:0"),
                     Thread = engine.Threads[0]
                 };
+
                 var socket = new MockSocket(mockLibuv, Thread.CurrentThread.ManagedThreadId, trace);
                 var connection = new Connection(context, socket);
                 connection.Start();

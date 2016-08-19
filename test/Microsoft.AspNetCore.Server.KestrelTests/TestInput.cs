@@ -57,14 +57,23 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         {
         }
 
+        public void End(ProduceEndType endType)
+        {
+        }
+
+        public void NotifyRequestStarted()
+        {
+        }
+
+        public void NotifyRequestFinished()
+        {
+        }
+
         public void Abort()
         {
         }
 
         public void Write(ArraySegment<byte> data, Action<Exception, object> callback, object state)
-        {
-        }
-        public void End(ProduceEndType endType)
         {
         }
 

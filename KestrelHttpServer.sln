@@ -35,6 +35,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "shared", "shared", "{0EF2ACDF-012F-4472-A13A-4272419E2903}"
 	ProjectSection(SolutionItems) = preProject
 		test\shared\HttpClientSlim.cs = test\shared\HttpClientSlim.cs
+		test\shared\TestConnection.cs = test\shared\TestConnection.cs
 	EndProjectSection
 EndProject
 Global

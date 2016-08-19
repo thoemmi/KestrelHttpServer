@@ -24,6 +24,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
         // otherwise it needs to wait till the next pass of the libuv loop
         private const int _maxLoops = 8;
 
+        // how often the heartbeat timer will tick connections
+        private const int _heartbeatMilliseconds = 1000;
+
         private static readonly Action<object, object> _postCallbackAdapter = (callback, state) => ((Action<object>)callback).Invoke(state);
         private static readonly Action<object, object> _postAsyncCallbackAdapter = (callback, state) => ((Action<object>)callback).Invoke(state);
 
@@ -33,6 +36,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
         private readonly TaskCompletionSource<object> _threadTcs = new TaskCompletionSource<object>();
         private readonly UvLoopHandle _loop;
         private readonly UvAsyncHandle _post;
+        private readonly UvTimerHandle _heartbeatTimer;
         private Queue<Work> _workAdding = new Queue<Work>(1024);
         private Queue<Work> _workRunning = new Queue<Work>(1024);
         private Queue<CloseHandle> _closeHandleAdding = new Queue<CloseHandle>(256);
@@ -57,6 +61,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
             _post = new UvAsyncHandle(_log);
             _thread = new Thread(ThreadStart);
             _thread.Name = "KestrelThread - libuv";
+            _heartbeatTimer = new UvTimerHandle(_log);
 #if !DEBUG
             // Mark the thread as being as unimportant to keeping the process alive.
             // Don't do this for debug builds, so we know if the thread isn't terminating.
@@ -169,9 +174,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
             }
         }
 
-
         private void AllowStop()
         {
+            _heartbeatTimer.Stop();
             _post.Unreference();
         }
 
@@ -267,6 +272,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
                 {
                     _loop.Init(_engine.Libuv);
                     _post.Init(_loop, OnPost, EnqueueCloseHandle);
+                    _heartbeatTimer.Init(_loop, EnqueueCloseHandle);
+                    _heartbeatTimer.Start(OnHeartbeat, _heartbeatMilliseconds, _heartbeatMilliseconds);
                     _initCompleted = true;
                     tcs.SetResult(0);
                 }
@@ -289,6 +296,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
                 // run the loop one more time to delete the open handles
                 _post.Reference();
                 _post.Dispose();
+                _heartbeatTimer.Dispose();
 
                 // Ensure the Dispose operations complete in the event loop.
                 var ran2 = _loop.Run();
@@ -318,6 +326,16 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
                 wasWork = DoPostCloseHandle() || wasWork;
                 loopsRemaining--;
             } while (wasWork && loopsRemaining > 0);
+        }
+
+        private void OnHeartbeat(UvTimerHandle timer)
+        {
+            Walk(ptr =>
+            {
+                var handle = UvMemory.FromIntPtr<UvHandle>(ptr);
+                var connection = (handle as UvStreamHandle)?.Connection;
+                connection?.Tick();
+            });
         }
 
         private bool DoPostWork()

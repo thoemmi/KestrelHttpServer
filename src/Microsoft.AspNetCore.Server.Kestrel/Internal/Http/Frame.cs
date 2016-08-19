@@ -56,7 +56,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         private CancellationTokenSource _abortedCts;
         private CancellationToken? _manuallySetRequestAbortToken;
 
-        protected RequestProcessingStatus _requestProcessingStatus;
+        private RequestProcessingStatus _requestProcessingStatus;
         protected bool _keepAlive;
         private bool _autoChunk;
         protected Exception _applicationException;
@@ -212,6 +212,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                 return cts;
             }
         }
+
+        public RequestProcessingStatus Status => _requestProcessingStatus;
 
         public bool HasResponseStarted
         {
@@ -1277,7 +1279,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             Done
         }
 
-        protected enum RequestProcessingStatus
+        public enum RequestProcessingStatus
         {
             RequestPending,
             RequestStarted,
