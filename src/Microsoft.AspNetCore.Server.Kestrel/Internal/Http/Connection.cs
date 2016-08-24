@@ -164,9 +164,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         {
             var now = DateTimeOffset.UtcNow;
 
-            if (_frame?.Status == Frame.RequestProcessingStatus.RequestPending)
+            if (_frame.Status == Frame.RequestProcessingStatus.RequestPending)
             {
-                if ((now.Ticks - _requestEndTime) / 10000000 > ServerOptions.Limits.KeepAliveTimeout)
+                if ((now.Ticks - _requestEndTime) / TimeSpan.TicksPerSecond > ServerOptions.Limits.KeepAliveTimeout)
                 {
                     SocketInput.IncomingComplete(0, null);
                 }
