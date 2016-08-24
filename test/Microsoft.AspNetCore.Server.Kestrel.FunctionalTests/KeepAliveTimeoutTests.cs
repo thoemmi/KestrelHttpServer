@@ -174,7 +174,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                             "POST / HTTP/1.1",
                             "Transfer-Encoding: chunked",
                             "",
-                            "5", "hello");
+                            "5", "hello",
+                            "");
                     await Task.Delay((KeepAliveTimeout + 2) * 1000);
                     await connection.Send(
                             "6", " world",
