@@ -38,8 +38,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         private TaskCompletionSource<object> _socketClosedTcs = new TaskCompletionSource<object>();
         private BufferSizeControl _bufferSizeControl;
 
-        private DateTimeOffset _requestStartTime;
-        private DateTimeOffset _requestEndTime;
+        private long _requestStartTime;
+        private long _requestEndTime;
 
         public Connection(ListenerContext context, UvStreamHandle socket) : base(context)
         {
@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             Log.ConnectionStart(ConnectionId);
 
             // Start socket prior to applying the ConnectionFilter
-            _requestEndTime = DateTimeOffset.UtcNow;
+            _requestEndTime = DateTimeOffset.UtcNow.Ticks;
             _socket.ReadStart(_allocCallback, _readCallback, this);
 
             if (ServerOptions.ConnectionFilter == null)
@@ -166,7 +166,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
             if (_frame?.Status == Frame.RequestProcessingStatus.RequestPending)
             {
-                if ((now - _requestEndTime).TotalSeconds > ServerOptions.Limits.KeepAliveTimeout)
+                if ((now.Ticks - _requestEndTime) / 10000000 > ServerOptions.Limits.KeepAliveTimeout)
                 {
                     SocketInput.IncomingComplete(0, null);
                 }
@@ -296,12 +296,12 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         void IConnectionControl.NotifyRequestStarted()
         {
-            _requestStartTime = DateTimeOffset.Now;
+            Interlocked.Exchange(ref _requestStartTime, DateTimeOffset.UtcNow.Ticks);
         }
 
         void IConnectionControl.NotifyRequestFinished()
         {
-            _requestEndTime = DateTimeOffset.Now;
+            Interlocked.Exchange(ref _requestEndTime, DateTimeOffset.UtcNow.Ticks);
         }
 
         private static unsafe string GenerateConnectionId(long id)
