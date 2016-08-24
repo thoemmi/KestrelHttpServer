@@ -49,6 +49,44 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
         }
 
         [Fact]
+        public async Task ConnectionClosedWhenKeepAliveTimeoutExpiresAfterChunkedRequest()
+        {
+            using (var host = StartHost())
+            {
+                using (var connection = new TestConnection(host.GetPort()))
+                {
+                    await connection.Send(
+                            "POST / HTTP/1.1",
+                            "Transfer-Encoding: chunked",
+                            "",
+                            "5", "hello",
+                            "6", " world",
+                            "0",
+                             "",
+                             "");
+                    await connection.Receive(
+                        "HTTP/1.1 200 OK",
+                        "");
+                    await connection.ReceiveStartsWith("Date: ");
+                    await connection.Receive(
+                        "Content-Length: 12",
+                        "",
+                        "hello, world");
+
+                    await Task.Delay((KeepAliveTimeout + 2) * 1000);
+
+                    await Assert.ThrowsAsync<IOException>(async () =>
+                    {
+                        await connection.Send(
+                            "GET / HTTP/1.1",
+                            "",
+                            "");
+                    });
+                }
+            }
+        }
+
+        [Fact]
         public async Task KeepAliveTimeoutResetsBetweenContentLengthRequests()
         {
             using (var host = StartHost())
@@ -108,7 +146,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
         }
 
         [Fact]
-        public async Task KeepAliveTimeoutNotTriggeredMidRequest()
+        public async Task KeepAliveTimeoutNotTriggeredMidContentLengthRequest()
         {
             using (var host = StartHost())
             {
@@ -121,6 +159,28 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                         "a");
                     await Task.Delay((KeepAliveTimeout + 2) * 1000);
                     await connection.Send("bcdefgh");
+                }
+            }
+        }
+
+        [Fact]
+        public async Task KeepAliveTimeoutNotTriggeredMidChunkedRequest()
+        {
+            using (var host = StartHost())
+            {
+                using (var connection = new TestConnection(host.GetPort()))
+                {
+                    await connection.Send(
+                            "POST / HTTP/1.1",
+                            "Transfer-Encoding: chunked",
+                            "",
+                            "5", "hello");
+                    await Task.Delay((KeepAliveTimeout + 2) * 1000);
+                    await connection.Send(
+                            "6", " world",
+                            "0",
+                             "",
+                             "");
                 }
             }
         }
