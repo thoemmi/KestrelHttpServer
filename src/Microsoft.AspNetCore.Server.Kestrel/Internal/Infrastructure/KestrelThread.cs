@@ -332,9 +332,10 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
         {
             Walk(ptr =>
             {
+                var now = DateTime.UtcNow.Ticks;
                 var handle = UvMemory.FromIntPtr<UvHandle>(ptr);
                 var connection = (handle as UvStreamHandle)?.Connection;
-                connection?.Tick();
+                connection?.Tick(now);
             });
         }
 

@@ -160,13 +160,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         }
 
         // Called on Libuv thread
-        public void Tick()
+        public void Tick(long now)
         {
-            var now = DateTime.UtcNow;
-
             if (_frame.Status == Frame.RequestProcessingStatus.RequestPending)
             {
-                if ((now.Ticks - _requestEndTime) / TimeSpan.TicksPerSecond > ServerOptions.Limits.KeepAliveTimeout)
+                if ((now - _requestEndTime) / TimeSpan.TicksPerSecond > ServerOptions.Limits.KeepAliveTimeout)
                 {
                     SocketInput.IncomingComplete(0, null);
                 }
