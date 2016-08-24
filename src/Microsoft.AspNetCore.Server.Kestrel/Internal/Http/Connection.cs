@@ -77,7 +77,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             Log.ConnectionStart(ConnectionId);
 
             // Start socket prior to applying the ConnectionFilter
-            _requestEndTime = DateTimeOffset.UtcNow.Ticks;
+            _requestEndTime = DateTime.UtcNow.Ticks;
             _socket.ReadStart(_allocCallback, _readCallback, this);
 
             if (ServerOptions.ConnectionFilter == null)
@@ -162,7 +162,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         // Called on Libuv thread
         public void Tick()
         {
-            var now = DateTimeOffset.UtcNow;
+            var now = DateTime.UtcNow;
 
             if (_frame.Status == Frame.RequestProcessingStatus.RequestPending)
             {
@@ -296,12 +296,12 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         void IConnectionControl.NotifyRequestStarted()
         {
-            Interlocked.Exchange(ref _requestStartTime, DateTimeOffset.UtcNow.Ticks);
+            Interlocked.Exchange(ref _requestStartTime, DateTime.UtcNow.Ticks);
         }
 
         void IConnectionControl.NotifyRequestFinished()
         {
-            Interlocked.Exchange(ref _requestEndTime, DateTimeOffset.UtcNow.Ticks);
+            Interlocked.Exchange(ref _requestEndTime, DateTime.UtcNow.Ticks);
         }
 
         private static unsafe string GenerateConnectionId(long id)
