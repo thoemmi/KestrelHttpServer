@@ -25,7 +25,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
         private const int _maxLoops = 8;
 
         // how often the heartbeat timer will tick connections
-        private const int _heartbeatMilliseconds = 1000;
+        private const int _heartbeatMilliseconds = 2000;
 
         private static readonly Action<object, object> _postCallbackAdapter = (callback, state) => ((Action<object>)callback).Invoke(state);
         private static readonly Action<object, object> _postAsyncCallbackAdapter = (callback, state) => ((Action<object>)callback).Invoke(state);
