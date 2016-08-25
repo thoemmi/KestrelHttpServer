@@ -26,14 +26,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                         "GET / HTTP/1.1",
                         "",
                         "");
-                    await connection.Receive(
-                        "HTTP/1.1 200 OK",
-                        "");
-                    await connection.ReceiveStartsWith("Date: ");
-                    await connection.Receive(
-                        "Content-Length: 12",
-                        "",
-                        "hello, world");
+                    await ReceiveResponse(connection);
 
                     await Task.Delay((KeepAliveTimeout + 2) * 1000);
 
@@ -43,6 +36,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                             "GET / HTTP/1.1",
                             "",
                             "");
+                        await ReceiveResponse(connection);
                     });
                 }
             }
@@ -64,14 +58,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                             "0",
                              "",
                              "");
-                    await connection.Receive(
-                        "HTTP/1.1 200 OK",
-                        "");
-                    await connection.ReceiveStartsWith("Date: ");
-                    await connection.Receive(
-                        "Content-Length: 12",
-                        "",
-                        "hello, world");
+                    await ReceiveResponse(connection);
 
                     await Task.Delay((KeepAliveTimeout + 2) * 1000);
 
@@ -81,6 +68,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                             "GET / HTTP/1.1",
                             "",
                             "");
+                        await ReceiveResponse(connection);
                     });
                 }
             }
@@ -99,14 +87,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                             "GET / HTTP/1.1",
                             "",
                             "");
-                        await connection.Receive(
-                            "HTTP/1.1 200 OK",
-                            "");
-                        await connection.ReceiveStartsWith("Date: ");
-                        await connection.Receive(
-                            "Content-Length: 12",
-                            "",
-                            "hello, world");
+                        await ReceiveResponse(connection);
                         await Task.Delay((int)(KeepAliveTimeout * 0.5 * 1000));
                     }
                 }
@@ -131,14 +112,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                             "0",
                              "",
                              "");
-                        await connection.Receive(
-                            "HTTP/1.1 200 OK",
-                            "");
-                        await connection.ReceiveStartsWith("Date: ");
-                        await connection.Receive(
-                            "Content-Length: 12",
-                            "",
-                            "hello, world");
+                        await ReceiveResponse(connection);
                         await Task.Delay((int)(KeepAliveTimeout * 0.5 * 1000));
                     }
                 }
@@ -159,6 +133,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                         "a");
                     await Task.Delay((KeepAliveTimeout + 2) * 1000);
                     await connection.Send("bcdefgh");
+                    await ReceiveResponse(connection);
                 }
             }
         }
@@ -182,6 +157,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                             "0",
                              "",
                              "");
+                    await ReceiveResponse(connection);
                 }
             }
         }
@@ -227,6 +203,18 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
 
             host.Start();
             return host;
+        }
+
+        private async Task ReceiveResponse(TestConnection connection)
+        {
+            await connection.Receive(
+                "HTTP/1.1 200 OK",
+                "");
+            await connection.ReceiveStartsWith("Date: ");
+            await connection.Receive(
+                "Content-Length: 12",
+                "",
+                "hello, world");
         }
     }
 }
