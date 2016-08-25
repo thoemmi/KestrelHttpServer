@@ -332,7 +332,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
         {
             Walk(ptr =>
             {
-                var now = _loop.Now();
+                var now = _engine.Libuv.hrtime();
                 var handle = UvMemory.FromIntPtr<UvHandle>(ptr);
                 var connection = (handle as UvStreamHandle)?.Connection;
                 connection?.Tick(now);
