@@ -15,8 +15,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 {
     public class Connection : ConnectionContext, IConnectionControl
     {
-        private const int NanosecondsPerSecond = 1000000000;
-
         // Base32 encoding - in ascii sort order for easy text based sorting
         private static readonly string _encode32Chars = "0123456789ABCDEFGHIJKLMNOPQRSTUV";
 
@@ -79,7 +77,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             Log.ConnectionStart(ConnectionId);
 
             // Start socket prior to applying the ConnectionFilter
-            _requestEndTime = _socket.Libuv.hrtime();
+            _requestEndTime = Thread.Loop.Now();
             _socket.ReadStart(_allocCallback, _readCallback, this);
 
             if (ServerOptions.ConnectionFilter == null)
@@ -166,9 +164,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         {
             if (_frame.Status == Frame.RequestProcessingStatus.RequestPending)
             {
-                if ((now - _requestEndTime) / NanosecondsPerSecond > ServerOptions.Limits.KeepAliveTimeout)
+                if ((now - _requestEndTime) / 1000 > ServerOptions.Limits.KeepAliveTimeout)
                 {
-                    SocketInput.IncomingComplete(0, null);
+                    StopAsync();
                 }
             }
         }
@@ -296,12 +294,20 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         void IConnectionControl.NotifyRequestStarted()
         {
-            Interlocked.Exchange(ref _requestStartTime, _socket.Libuv.hrtime());
+            Thread.Post(state =>
+            {
+                var connection = (Connection)state;
+                connection._requestStartTime = Thread.Loop.Now();
+            }, this);
         }
 
         void IConnectionControl.NotifyRequestFinished()
         {
-            Interlocked.Exchange(ref _requestEndTime, _socket.Libuv.hrtime());
+            Thread.Post(state =>
+            {
+                var connection = (Connection)state;
+                connection._requestEndTime = Thread.Loop.Now();
+            }, this);
         }
 
         private static unsafe string GenerateConnectionId(long id)
