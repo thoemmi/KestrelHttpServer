@@ -296,12 +296,12 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         void IConnectionControl.NotifyRequestStarted()
         {
-            Interlocked.Exchange(ref _requestStartTime, _socket.Libuv.hrtime());
+            _requestStartTime = _socket.Libuv.hrtime();
         }
 
         void IConnectionControl.NotifyRequestFinished()
         {
-            Interlocked.Exchange(ref _requestEndTime, _socket.Libuv.hrtime());
+            _requestEndTime = _socket.Libuv.hrtime();
         }
 
         private static unsafe string GenerateConnectionId(long id)
