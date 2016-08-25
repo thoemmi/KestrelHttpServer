@@ -55,6 +55,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Networking
             _uv_timer_init = NativeMethods.uv_timer_init;
             _uv_timer_start = NativeMethods.uv_timer_start;
             _uv_timer_stop = NativeMethods.uv_timer_stop;
+            _uv_hrtime = NativeMethods.uv_hrtime;
         }
 
         // Second ctor that doesn't set any fields only to be used by MockLibuv
@@ -424,6 +425,12 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Networking
             Check(_uv_timer_stop(handle));
         }
 
+        protected Func<long> _uv_hrtime;
+        unsafe public long hrtime()
+        {
+            return _uv_hrtime();
+        }
+
         public delegate int uv_tcp_getsockname_func(UvTcpHandle handle, out SockAddr addr, ref int namelen);
         protected uv_tcp_getsockname_func _uv_tcp_getsockname;
         public void tcp_getsockname(UvTcpHandle handle, out SockAddr addr, ref int namelen)
@@ -629,6 +636,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Networking
 
             [DllImport("libuv", CallingConvention = CallingConvention.Cdecl)]
             unsafe public static extern int uv_timer_stop(UvTimerHandle handle);
+
+            [DllImport("libuv", CallingConvention = CallingConvention.Cdecl)]
+            unsafe public static extern long uv_hrtime();
 
             [DllImport("WS2_32.dll", CallingConvention = CallingConvention.Winapi)]
             unsafe public static extern int WSAIoctl(
