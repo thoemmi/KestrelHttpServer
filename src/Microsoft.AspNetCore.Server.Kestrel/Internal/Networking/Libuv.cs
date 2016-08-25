@@ -428,7 +428,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Networking
         protected Func<UvLoopHandle, long> _uv_now;
         unsafe public long now(UvLoopHandle loop)
         {
-            loop.Validate();
             return _uv_now(loop);
         }
 
