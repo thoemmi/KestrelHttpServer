@@ -25,12 +25,17 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                    ServerOptions = new KestrelServerOptions(),
+                    ServerOptions = new KestrelServerOptions()
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -68,12 +73,17 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                    ServerOptions = new KestrelServerOptions(),
+                    ServerOptions = new KestrelServerOptions()
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -110,12 +120,17 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                    ServerOptions = new KestrelServerOptions(),
+                    ServerOptions = new KestrelServerOptions()
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -151,12 +166,18 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = new KestrelServerOptions(),
+                    Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -192,13 +213,18 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = new KestrelServerOptions(),
                     Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -219,13 +245,18 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = new KestrelServerOptions(),
                     Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -255,13 +286,18 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = new KestrelServerOptions(),
                     Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -285,13 +321,18 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = new KestrelServerOptions(),
                     Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -316,13 +357,18 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = new KestrelServerOptions(),
                     Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -351,13 +397,18 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = new KestrelServerOptions(),
                     Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -381,13 +432,18 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = new KestrelServerOptions(),
                     Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -413,13 +469,17 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
                 var options = new KestrelServerOptions();
                 options.Limits.MaxRequestHeadersTotalSize = headerLine.Length - 1;
 
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = options,
                     Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
 
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
@@ -446,13 +506,17 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
                 var options = new KestrelServerOptions();
                 options.Limits.MaxRequestHeaderCount = 1;
 
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = options,
                     Log = trace
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
 
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
@@ -480,12 +544,17 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
             using (var pool = new MemoryPool())
             using (var socketInput = new SocketInput(pool, ltp))
             {
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                    ServerOptions = new KestrelServerOptions(),
+                    ServerOptions = new KestrelServerOptions()
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
+
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
                 frame.InitializeHeaders();
@@ -508,12 +577,17 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         public void ResetResetsScheme()
         {
             // Arrange
-            var connectionContext = new ConnectionContext()
+            var serviceContext = new ServiceContext
             {
                 DateHeaderValueManager = new DateHeaderValueManager(),
-                ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                ServerOptions = new KestrelServerOptions(),
+                ServerOptions = new KestrelServerOptions()
             };
+            var listenerContext = new ListenerContext(serviceContext)
+            {
+                ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+            };
+            var connectionContext = new ConnectionContext(listenerContext);
+
             var frame = new Frame<object>(application: null, context: connectionContext);
             frame.Scheme = "https";
 
@@ -539,12 +613,16 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
                 options.Limits.MaxRequestHeadersTotalSize = headerLine1.Length;
                 options.Limits.MaxRequestHeaderCount = 1;
 
-                var connectionContext = new ConnectionContext()
+                var serviceContext = new ServiceContext
                 {
                     DateHeaderValueManager = new DateHeaderValueManager(),
-                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
                     ServerOptions = options
                 };
+                var listenerContext = new ListenerContext(serviceContext)
+                {
+                    ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+                };
+                var connectionContext = new ConnectionContext(listenerContext);
 
                 var frame = new Frame<object>(application: null, context: connectionContext);
                 frame.Reset();
@@ -572,13 +650,20 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         public void ThrowsWhenStatusCodeIsSetAfterResponseStarted()
         {
             // Arrange
-            var connectionContext = new ConnectionContext()
+            var serviceContext = new ServiceContext
             {
                 DateHeaderValueManager = new DateHeaderValueManager(),
-                ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                ServerOptions = new KestrelServerOptions(),
+                ServerOptions = new KestrelServerOptions()
+            };
+            var listenerContext = new ListenerContext(serviceContext)
+            {
+                ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+            };
+            var connectionContext = new ConnectionContext(listenerContext)
+            {
                 SocketOutput = new MockSocketOuptut()
             };
+
             var frame = new Frame<object>(application: null, context: connectionContext);
             frame.InitializeHeaders();
 
@@ -594,13 +679,20 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         public void ThrowsWhenReasonPhraseIsSetAfterResponseStarted()
         {
             // Arrange
-            var connectionContext = new ConnectionContext()
+            var serviceContext = new ServiceContext
             {
                 DateHeaderValueManager = new DateHeaderValueManager(),
-                ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                ServerOptions = new KestrelServerOptions(),
+                ServerOptions = new KestrelServerOptions()
+            };
+            var listenerContext = new ListenerContext(serviceContext)
+            {
+                ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+            };
+            var connectionContext = new ConnectionContext(listenerContext)
+            {
                 SocketOutput = new MockSocketOuptut()
             };
+
             var frame = new Frame<object>(application: null, context: connectionContext);
             frame.InitializeHeaders();
 
@@ -616,13 +708,20 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         public void ThrowsWhenOnStartingIsSetAfterResponseStarted()
         {
             // Arrange
-            var connectionContext = new ConnectionContext()
+            var serviceContext = new ServiceContext
             {
                 DateHeaderValueManager = new DateHeaderValueManager(),
-                ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                ServerOptions = new KestrelServerOptions(),
+                ServerOptions = new KestrelServerOptions()
+            };
+            var listenerContext = new ListenerContext(serviceContext)
+            {
+                ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+            };
+            var connectionContext = new ConnectionContext(listenerContext)
+            {
                 SocketOutput = new MockSocketOuptut()
             };
+
             var frame = new Frame<object>(application: null, context: connectionContext);
             frame.InitializeHeaders();
             frame.Write(new ArraySegment<byte>(new byte[1]));
@@ -636,13 +735,20 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         public void InitializeHeadersResetsRequestHeaders()
         {
             // Arrange
-            var connectionContext = new ConnectionContext()
+            var serviceContext = new ServiceContext
             {
                 DateHeaderValueManager = new DateHeaderValueManager(),
-                ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                ServerOptions = new KestrelServerOptions(),
+                ServerOptions = new KestrelServerOptions()
+            };
+            var listenerContext = new ListenerContext(serviceContext)
+            {
+                ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+            };
+            var connectionContext = new ConnectionContext(listenerContext)
+            {
                 SocketOutput = new MockSocketOuptut()
             };
+
             var frame = new Frame<object>(application: null, context: connectionContext);
             frame.InitializeHeaders();
 
@@ -660,13 +766,20 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         public void InitializeHeadersResetsResponseHeaders()
         {
             // Arrange
-            var connectionContext = new ConnectionContext()
+            var serviceContext = new ServiceContext
             {
                 DateHeaderValueManager = new DateHeaderValueManager(),
-                ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                ServerOptions = new KestrelServerOptions(),
+                ServerOptions = new KestrelServerOptions()
+            };
+            var listenerContext = new ListenerContext(serviceContext)
+            {
+                ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+            };
+            var connectionContext = new ConnectionContext(listenerContext)
+            {
                 SocketOutput = new MockSocketOuptut()
             };
+
             var frame = new Frame<object>(application: null, context: connectionContext);
             frame.InitializeHeaders();
 
@@ -684,13 +797,20 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         public void InitializeStreamsResetsStreams()
         {
             // Arrange
-            var connectionContext = new ConnectionContext()
+            var serviceContext = new ServiceContext
             {
                 DateHeaderValueManager = new DateHeaderValueManager(),
-                ServerAddress = ServerAddress.FromUrl("http://localhost:5000"),
-                ServerOptions = new KestrelServerOptions(),
+                ServerOptions = new KestrelServerOptions()
+            };
+            var listenerContext = new ListenerContext(serviceContext)
+            {
+                ServerAddress = ServerAddress.FromUrl("http://localhost:5000")
+            };
+            var connectionContext = new ConnectionContext(listenerContext)
+            {
                 SocketOutput = new MockSocketOuptut()
             };
+
             var frame = new Frame<object>(application: null, context: connectionContext);
             frame.InitializeHeaders();
 
