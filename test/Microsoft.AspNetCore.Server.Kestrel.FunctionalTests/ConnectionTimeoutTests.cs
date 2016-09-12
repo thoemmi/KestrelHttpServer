@@ -39,7 +39,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
         public async Task ConnectionNotTimedOutWhileResponseBeingSent()
         {
             var cts = new CancellationTokenSource();
-            var responseBytesWritten = 0;
+            var sem = new SemaphoreSlim(0);
+            var chunks = 0;
 
             using (var server = CreateServer(async httpContext =>
             {
@@ -48,8 +49,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                     while (!cts.IsCancellationRequested)
                     {
                         await httpContext.Response.WriteAsync("a");
-                        responseBytesWritten++;
+                        Interlocked.Increment(ref chunks);
+                        sem.Release();
                     }
+
+                    sem.Release();
                 }
                 else
                 {
@@ -73,12 +77,20 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                         "",
                         "");
 
-                    for (var i = 0; i < responseBytesWritten; i++)
+                    while (true)
                     {
+                        await sem.WaitAsync();
+
+                        if (chunks == 0)
+                        {
+                            break;
+                        }
+
                         await connection.Receive(
                             "1",
                             "a",
                             "");
+                        Interlocked.Decrement(ref chunks);
                     }
 
                     await connection.Receive(
