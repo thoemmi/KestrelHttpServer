@@ -207,7 +207,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
 
                 while (!cts.IsCancellationRequested)
                 {
-
                     await connection.Send(
                         "1",
                         "a",

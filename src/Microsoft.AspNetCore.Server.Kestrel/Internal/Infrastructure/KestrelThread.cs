@@ -27,9 +27,6 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
         // otherwise it needs to wait till the next pass of the libuv loop
         private readonly int _maxLoops = 8;
 
-        // how often the heartbeat timer will tick connections
-        private const int _heartbeatMilliseconds = 1000;
-
         private readonly KestrelEngine _engine;
         private readonly IApplicationLifetime _appLifetime;
         private readonly Thread _thread;
