@@ -334,10 +334,12 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal
 
         private void OnHeartbeat(UvTimerHandle timer)
         {
+            var now = Loop.Now();
+
             Walk(ptr =>
             {
                 var handle = UvMemory.FromIntPtr<UvHandle>(ptr);
-                (handle as UvStreamHandle)?.Connection?.Tick();
+                (handle as UvStreamHandle)?.Connection?.Tick(now);
             });
         }
 

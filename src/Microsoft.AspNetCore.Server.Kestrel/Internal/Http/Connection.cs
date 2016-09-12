@@ -38,8 +38,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         private TaskCompletionSource<object> _socketClosedTcs = new TaskCompletionSource<object>();
         private BufferSizeControl _bufferSizeControl;
 
-        private int _secondsSinceLastConnectionEvent;
-        private bool _timeoutEnabled = true;
+        private long _lastTimestamp;
+        private long _millisecondsSinceLastConnectionEvent;
+        private bool _timeoutEnabled;
 
         public Connection(ListenerContext context, UvStreamHandle socket) : base(context)
         {
@@ -74,7 +75,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         public void Start()
         {
+            _lastTimestamp = Thread.Loop.Now();
+
             Log.ConnectionStart(ConnectionId);
+
+            ConnectionControl.ResetTimeout();
 
             // Start socket prior to applying the ConnectionFilter
             _socket.ReadStart(_allocCallback, _readCallback, this);
@@ -159,17 +164,19 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         }
 
         // Called on Libuv thread
-        public void Tick()
+        public void Tick(long timestamp)
         {
             if (_timeoutEnabled)
             {
-                if (_secondsSinceLastConnectionEvent > ServerOptions.Limits.ConnectionTimeout.TotalSeconds)
+                if (_millisecondsSinceLastConnectionEvent > ServerOptions.Limits.ConnectionTimeout.TotalMilliseconds)
                 {
                     StopAsync();
                 }
 
-                _secondsSinceLastConnectionEvent++;
+                Interlocked.Add(ref _millisecondsSinceLastConnectionEvent, timestamp - _lastTimestamp);
             }
+
+            _lastTimestamp = timestamp;
         }
 
         private void ApplyConnectionFilter()
@@ -297,7 +304,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         void IConnectionControl.ResetTimeout()
         {
-            _secondsSinceLastConnectionEvent = 0;
+            Interlocked.Exchange(ref _millisecondsSinceLastConnectionEvent, 0);
             _timeoutEnabled = true;
         }
 
