@@ -192,6 +192,10 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                 {
                     _postingWrite = true;
                     _ongoingWrites++;
+                    // We don't know how long it will take to complete the write, but we don't want to
+                    // close the connection knowing there is a pending/ongoing write, since we know there will
+                    // be connection activity. Hence, disable the timeout until there are no ongoing writes.
+                    _connection.ConnectionControl.DisableTimeout();
                     scheduleWrite = true;
                 }
             }
@@ -343,6 +347,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                 else
                 {
                     _ongoingWrites--;
+
+                    if (_ongoingWrites == 0)
+                    {
+                        _connection.ConnectionControl.ResetTimeout();
+                    }
                 }
 
                 Monitor.Exit(_contextLock);
@@ -400,6 +409,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             else
             {
                 _ongoingWrites--;
+
+                if (_ongoingWrites == 0)
+                {
+                    _connection.ConnectionControl.ResetTimeout();
+                }
             }
         }
 

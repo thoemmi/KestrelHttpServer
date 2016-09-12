@@ -38,6 +38,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         private TaskCompletionSource<object> _socketClosedTcs = new TaskCompletionSource<object>();
         private BufferSizeControl _bufferSizeControl;
 
+        private int _secondsSinceLastConnectionEvent;
+        private bool _timeoutEnabled = true;
+
         public Connection(ListenerContext context, UvStreamHandle socket) : base(context)
         {
             _socket = socket;
@@ -158,7 +161,15 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
         // Called on Libuv thread
         public void Tick()
         {
-            _frame.Tick();
+            if (_timeoutEnabled)
+            {
+                if (_secondsSinceLastConnectionEvent > ServerOptions.Limits.ConnectionTimeout.TotalSeconds)
+                {
+                    StopAsync();
+                }
+
+                _secondsSinceLastConnectionEvent++;
+            }
         }
 
         private void ApplyConnectionFilter()
@@ -199,6 +210,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         private void OnRead(UvStreamHandle handle, int status)
         {
+            ConnectionControl.ResetTimeout();
+
             if (status == 0)
             {
                 // A zero status does not indicate an error or connection end. It indicates
@@ -282,9 +295,15 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             }
         }
 
-        void IConnectionControl.Stop()
+        void IConnectionControl.ResetTimeout()
         {
-            StopAsync();
+            _secondsSinceLastConnectionEvent = 0;
+            _timeoutEnabled = true;
+        }
+
+        void IConnectionControl.DisableTimeout()
+        {
+            _timeoutEnabled = false;
         }
 
         private static unsafe string GenerateConnectionId(long id)

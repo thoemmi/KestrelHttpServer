@@ -63,7 +63,11 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         {
         }
 
-        public void Stop()
+        public void ResetTimeout()
+        {
+        }
+
+        public void DisableTimeout()
         {
         }
 

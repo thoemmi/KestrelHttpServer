@@ -150,9 +150,9 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         }
 
         [Fact]
-        public void KeepAliveTimeoutDefault()
+        public void ConnectionTimeoutDefault()
         {
-            Assert.Equal(TimeSpan.FromMinutes(2), new KestrelServerLimits().KeepAliveTimeout);
+            Assert.Equal(TimeSpan.FromMinutes(2), new KestrelServerLimits().ConnectionTimeout);
         }
 
         [Theory]
@@ -161,11 +161,11 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         [InlineData(2.1)]
         [InlineData(2.5)]
         [InlineData(2.9)]
-        public void KeepAliveTimeoutIsRoundedToTheNextSecond(double seconds)
+        public void ConnectionTimeoutIsRoundedToTheNextSecond(double seconds)
         {
             var o = new KestrelServerLimits();
-            o.KeepAliveTimeout = TimeSpan.FromSeconds(seconds);
-            Assert.Equal(Math.Ceiling(seconds), o.KeepAliveTimeout.TotalSeconds);
+            o.ConnectionTimeout = TimeSpan.FromSeconds(seconds);
+            Assert.Equal(Math.Ceiling(seconds), o.ConnectionTimeout.TotalSeconds);
         }
     }
 }

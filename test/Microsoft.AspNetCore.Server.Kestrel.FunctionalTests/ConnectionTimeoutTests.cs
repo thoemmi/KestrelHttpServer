@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Testing;
@@ -10,25 +11,22 @@ using Xunit;
 
 namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
 {
-    public class KeepAliveTimeoutTests
+    public class ConnectionTimeoutTests
     {
         private static readonly TimeSpan KeepAliveTimeout = TimeSpan.FromSeconds(10);
-        private static readonly int LongDelay = (int)TimeSpan.FromSeconds(30).TotalMilliseconds;
-        private static readonly int ShortDelay = LongDelay / 10;
+        private static readonly TimeSpan LongDelay = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan ShortDelay = TimeSpan.FromSeconds(LongDelay.TotalSeconds / 10);
 
         [Fact]
-        public async Task TestKeepAliveTimeout()
+        public async Task TestConnectionTimeout()
         {
             using (var server = CreateServer())
             {
                 var tasks = new[]
                 {
-                    ConnectionClosedWhenKeepAliveTimeoutExpires(server),
-                    ConnectionClosedWhenKeepAliveTimeoutExpiresAfterChunkedRequest(server),
-                    KeepAliveTimeoutResetsBetweenContentLengthRequests(server),
-                    KeepAliveTimeoutResetsBetweenChunkedRequests(server),
-                    KeepAliveTimeoutNotTriggeredMidContentLengthRequest(server),
-                    KeepAliveTimeoutNotTriggeredMidChunkedRequest(server),
+                    ConnectionClosedWhenTimeoutExpires(server),
+                    ConnectionKeptAliveBetweenRequests(server),
+                    ConnectionNotTimedOutWhileRequestBeginSent(server),
                     ConnectionTimesOutWhenOpenedButNoRequestSent(server)
                 };
 
@@ -36,7 +34,67 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
             }
         }
 
-        private async Task ConnectionClosedWhenKeepAliveTimeoutExpires(TestServer server)
+        [Fact]
+        public async Task ConnectionNotTimedOutWhileResponseBeingSent()
+        {
+            var cts = new CancellationTokenSource();
+            var responseBytesWritten = 0;
+
+            using (var server = CreateServer(async httpContext =>
+            {
+                if (httpContext.Request.Path == "/longresponse")
+                {
+                    while (!cts.IsCancellationRequested)
+                    {
+                        await httpContext.Response.WriteAsync("a");
+                        responseBytesWritten++;
+                    }
+                }
+                else
+                {
+                    const string response = "hello, world";
+                    httpContext.Response.ContentLength = response.Length;
+                    await httpContext.Response.WriteAsync(response);
+                }
+            }))
+            {
+                using (var connection = new TestConnection(server.Port))
+                {
+                    await connection.Send(
+                        "GET /longresponse HTTP/1.1",
+                        "",
+                        "");
+                    cts.CancelAfter(LongDelay);
+                    await connection.Receive(
+                        "HTTP/1.1 200 OK",
+                        $"Date: {server.Context.DateHeaderValue}",
+                        "Transfer-Encoding: chunked",
+                        "",
+                        "");
+
+                    for (var i = 0; i < responseBytesWritten; i++)
+                    {
+                        await connection.Receive(
+                            "1",
+                            "a",
+                            "");
+                    }
+
+                    await connection.Receive(
+                            "0",
+                            "",
+                            "");
+
+                    await connection.Send(
+                        "GET / HTTP/1.1",
+                        "",
+                        "");
+                    await ReceiveResponse(connection, server.Context);
+                }
+            }
+        }
+
+        private async Task ConnectionClosedWhenTimeoutExpires(TestServer server)
         {
             using (var connection = new TestConnection(server.Port))
             {
@@ -59,35 +117,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
             }
         }
 
-        private async Task ConnectionClosedWhenKeepAliveTimeoutExpiresAfterChunkedRequest(TestServer server)
-        {
-            using (var connection = new TestConnection(server.Port))
-            {
-                await connection.Send(
-                        "POST / HTTP/1.1",
-                        "Transfer-Encoding: chunked",
-                        "",
-                        "5", "hello",
-                        "6", " world",
-                        "0",
-                         "",
-                         "");
-                await ReceiveResponse(connection, server.Context);
-
-                await Task.Delay(LongDelay);
-
-                await Assert.ThrowsAsync<IOException>(async () =>
-                {
-                    await connection.Send(
-                        "GET / HTTP/1.1",
-                        "",
-                        "");
-                    await ReceiveResponse(connection, server.Context);
-                });
-            }
-        }
-
-        private async Task KeepAliveTimeoutResetsBetweenContentLengthRequests(TestServer server)
+        private async Task ConnectionKeptAliveBetweenRequests(TestServer server)
         {
             using (var connection = new TestConnection(server.Port))
             {
@@ -107,62 +137,33 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
             }
         }
 
-        private async Task KeepAliveTimeoutResetsBetweenChunkedRequests(TestServer server)
+        private async Task ConnectionNotTimedOutWhileRequestBeginSent(TestServer server)
         {
             using (var connection = new TestConnection(server.Port))
             {
-                for (var i = 0; i < 10; i++)
-                {
-                    await connection.Send(
-                        "POST / HTTP/1.1",
-                        "Transfer-Encoding: chunked",
-                        "",
-                        "5", "hello",
-                        "6", " world",
-                        "0",
-                         "",
-                         "");
-                    await Task.Delay(ShortDelay);
-                }
+                var cts = new CancellationTokenSource();
+                cts.CancelAfter(LongDelay);
 
-                for (var i = 0; i < 10; i++)
-                {
-                    await ReceiveResponse(connection, server.Context);
-                }
-            }
-        }
-
-        private async Task KeepAliveTimeoutNotTriggeredMidContentLengthRequest(TestServer server)
-        {
-            using (var connection = new TestConnection(server.Port))
-            {
-                await connection.Send(
-                    "POST / HTTP/1.1",
-                    "Content-Length: 8",
-                    "",
-                    "a");
-                await Task.Delay(LongDelay);
-                await connection.Send("bcdefgh");
-                await ReceiveResponse(connection, server.Context);
-            }
-        }
-
-        private async Task KeepAliveTimeoutNotTriggeredMidChunkedRequest(TestServer server)
-        {
-            using (var connection = new TestConnection(server.Port))
-            {
                 await connection.Send(
                         "POST / HTTP/1.1",
                         "Transfer-Encoding: chunked",
                         "",
-                        "5", "hello",
                         "");
-                await Task.Delay(LongDelay);
+
+                while (!cts.IsCancellationRequested)
+                {
+
+                    await connection.Send(
+                        "1",
+                        "a",
+                        "");
+                }
+
                 await connection.Send(
-                        "6", " world",
                         "0",
-                         "",
-                         "");
+                        "",
+                        "");
+
                 await ReceiveResponse(connection, server.Context);
             }
         }
@@ -182,16 +183,16 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
             }
         }
 
-        private TestServer CreateServer()
+        private TestServer CreateServer(RequestDelegate app = null)
         {
-            return new TestServer(App, new TestServiceContext
+            return new TestServer(app ?? App, new TestServiceContext
             {
                 ServerOptions = new KestrelServerOptions
                 {
                     AddServerHeader = false,
                     Limits =
                     {
-                        KeepAliveTimeout = KeepAliveTimeout
+                        ConnectionTimeout = KeepAliveTimeout
                     }
                 }
             });
