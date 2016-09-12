@@ -348,6 +348,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
                 {
                     _ongoingWrites--;
 
+                    // If this is the last write, re-enable connection timeout so connection can be timed out
+                    // if there are no read or writes without the timeout period.
                     if (_ongoingWrites == 0)
                     {
                         _connection.ConnectionControl.ResetTimeout();
@@ -410,6 +412,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
             {
                 _ongoingWrites--;
 
+                // If this is the last write, re-enable connection timeout so connection can be timed out
+                // if there are no read or writes without the timeout period.
                 if (_ongoingWrites == 0)
                 {
                     _connection.ConnectionControl.ResetTimeout();

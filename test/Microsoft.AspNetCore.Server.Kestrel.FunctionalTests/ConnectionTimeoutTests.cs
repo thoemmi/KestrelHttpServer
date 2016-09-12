@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Testing;
 using Xunit;
 
@@ -90,6 +91,48 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                         "",
                         "");
                     await ReceiveResponse(connection, server.Context);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task ConnectionTimeoutDoesNotApplyToUpgradedConnections()
+        {
+            var cts = new CancellationTokenSource();
+
+            using (var server = CreateServer(async httpContext =>
+            {
+                if (httpContext.Request.Path == "/upgrade")
+                {
+                    using (var stream = await httpContext.Features.Get<IHttpUpgradeFeature>().UpgradeAsync())
+                    {
+                        cts.Token.WaitHandle.WaitOne();
+                        stream.Write(new byte[] { (byte)'a' }, 0, 1);
+                    }
+                }
+                else
+                {
+                    const string response = "hello, world";
+                    httpContext.Response.ContentLength = response.Length;
+                    await httpContext.Response.WriteAsync(response);
+                }
+            }))
+            {
+                using (var connection = new TestConnection(server.Port))
+                {
+                    await connection.Send(
+                        "GET /upgrade HTTP/1.1",
+                        "",
+                        "");
+                    await connection.Receive(
+                        "HTTP/1.1 101 Switching Protocols",
+                        "Connection: Upgrade",
+                        $"Date: {server.Context.DateHeaderValue}",
+                        "",
+                        "");
+
+                    cts.CancelAfter(LongDelay);
+                    await connection.Receive("a");
                 }
             }
         }

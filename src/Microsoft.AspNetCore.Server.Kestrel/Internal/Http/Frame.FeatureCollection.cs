@@ -334,6 +334,8 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Internal.Http
 
         async Task<Stream> IHttpUpgradeFeature.UpgradeAsync()
         {
+            ConnectionControl.DisableTimeout();
+
             StatusCode = 101;
             ReasonPhrase = "Switching Protocols";
             ResponseHeaders["Connection"] = "Upgrade";
