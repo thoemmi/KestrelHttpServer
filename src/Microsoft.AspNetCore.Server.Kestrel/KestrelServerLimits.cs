@@ -146,7 +146,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel
         /// Gets or sets the connection timeout.
         /// </summary>
         /// <remarks>
-        /// Defaults to 2 minutes. Timeout granularity is in seconds. Sub-second values will be rounded to the next second.
+        /// Defaults to 2 minutes.
         /// </remarks>
         public TimeSpan ConnectionTimeout
         {
@@ -156,7 +156,7 @@ namespace Microsoft.AspNetCore.Server.Kestrel
             }
             set
             {
-                _connectionTimeout = TimeSpan.FromSeconds(Math.Ceiling(value.TotalSeconds));
+                _connectionTimeout = value;
             }
         }
     }

@@ -161,11 +161,11 @@ namespace Microsoft.AspNetCore.Server.KestrelTests
         [InlineData(2.1)]
         [InlineData(2.5)]
         [InlineData(2.9)]
-        public void ConnectionTimeoutIsRoundedToTheNextSecond(double seconds)
+        public void ConnectionTimeoutValid(double seconds)
         {
             var o = new KestrelServerLimits();
             o.ConnectionTimeout = TimeSpan.FromSeconds(seconds);
-            Assert.Equal(Math.Ceiling(seconds), o.ConnectionTimeout.TotalSeconds);
+            Assert.Equal(seconds, o.ConnectionTimeout.TotalSeconds);
         }
     }
 }
